@@ -8,35 +8,36 @@ namespace Sos
     {
         public const int Size = 5;
         public const int Empty = 0;
-        public const char LetterS = 'S';
-        public const char LetterO = 'O';
+        public const int LetterS = 1;
+        public const int LetterO = -1;
         public const int PlayerOne = 1;
         public const int PlayerTwo = -1;
+        public const int IsPlayerSos = 1;
 
-        private (int isPlayerOneSos, int nbTokenMax, int isPlayerTwoSos)[,] _board = 
-            new (int isPlayerOneSos, int nbTokenMax, int isPlayerTwoSos)[Size, Size];
+        private const int _ = 0, O = -1, S = 1;
 
-        //private (int size,int nbTokenMax)[] _gameSize = new(int size, int nbTokenMax)[]{
-        //        ( 3, 3 ), ( 6, 5 ), ( 8, 5 )
-        //    }; 
+        private (int isPlayerOneSos, int letter, int isPlayerTwoSos)[,] _board =
+            new (int isPlayerOneSos, int letter, int isPlayerTwoSos)[Size, Size];
 
         private List<int> _winnersByRound = new List<int>();
 
         public Game(int idGameSize = 0)
         {
-            //Size = _gameSize[idGameSize].size;
-            //NbTokenMax = _gameSize[idGameSize].nbTokenMax;
-            //_board = new int[Size, Size];
+
+
+            //_board[1, 2] = (1, -1, 0);
+            //_board[1, 1] = (1, 1, 0);
+            //_board[1, 3] = (1, 1, 1);
+            //_board[3, 3] = (0, 1, 1);
+            //_board[2, 3] = (0, -1, 1);
+            //_board[3, 1] = (0, 1, 0);
+
             CurPlayer = PlayerOne;
         }
 
-        public Game(IEnumerable<(int isPlayerOneSos, int nbTokenMax, int isPlayerTwoSos)> board, int curPlayer, int idGameSize = 0, int numRound = 0, int nbGameRounds = 3)
+        public Game(IEnumerable<(int isPlayerOneSos, int letter, int isPlayerTwoSos)> board, int curPlayer, int idGameSize = 0, int numRound = 0, int nbGameRounds = 3)
         {
-
             var turn = new Turn();
-            //Size = _gameSize[idGameSize].size;
-            //NbTokenMax = _gameSize[idGameSize].nbTokenMax;
-            //_board = new int[Size, Size];
 
             foreach (var tile in board)
             {
@@ -49,12 +50,11 @@ namespace Sos
             CurPlayer = curPlayer;
             NumRound = numRound;
             NbGameRounds = nbGameRounds;
-            
         }
 
         public int Play(Turn pos)
         {
-            if (_board[pos.Column, pos.Row].nbTokenMax != Empty)
+            if (_board[pos.Column, pos.Row].letter != Empty)
             {
                 throw new InvalidOperationException("Already played here");
             }
@@ -63,28 +63,27 @@ namespace Sos
             return score;
         }
 
-        //public void resetGame(int winner)
-        //{
-        //   if(winner != 0)
-        //    {
-        //        NumRound++;
-        //    }
-        //    _board = new int[Size, Size];
-        //    _winnersByRound.Add(Winner.Value);
-        //    CurPlayer = -Winner.Value;
-        //    Winner = null;
-        //}
+        public (int isPlayerOneSos, int letter, int isPlayerTwoSos) GetTile(Turn pos) =>
+            (
+                _board[pos.Column, pos.Row].isPlayerOneSos,
+                _board[pos.Column, pos.Row].letter,
+                _board[pos.Column, pos.Row].isPlayerTwoSos
+            );
+        public (int isPlayerOneSos, int letter, int isPlayerTwoSos) GetTile(int col, int row) =>
+            (
+                _board[col, row].isPlayerOneSos,
+                _board[col, row].letter,
+                _board[col, row].isPlayerTwoSos
+            );
 
-        public int GetTile(Turn pos) => _board[pos.Column, pos.Row].nbTokenMax;
-        public int GetTile(int col, int row) => _board[col, row].nbTokenMax;
-        private void SetTile(Turn turn, int value)
+        private void SetTile(Turn turn, (int, int, int) value)
         {
-            _board[turn.Column, turn.Row].nbTokenMax = value;
+            _board[turn.Column, turn.Row] = value;
         }
         /// <summary>
         /// Gets all the board squares starting from left to right and then from top to bottom
         /// </summary>
-        public IEnumerable<(int isPlayerOneSos, int nbTokenMax, int isPlayerTwoSos)> Tiles
+        public IEnumerable<(int isPlayerOneSos, int letter, int isPlayerTwoSos)> Tiles
         {
             get
             {
@@ -98,11 +97,11 @@ namespace Sos
                 }
             }
         }
-               
+
         public IEnumerable<int> WinnersByRound => _winnersByRound;
         public int? CurPlayer { get; private set; } = PlayerOne;
         public int? Winner { get; private set; } = null;
-        public int CanIplay => Tiles.Count(c => c.nbTokenMax == 0);
+        public int CanIplay => Tiles.Count(c => c.letter == 0);
         public int NbGameRounds { get; private set; } = 3;
         public int NumRound { get; private set; } = 0;
         public int NbTokenMax { get; private set; } = 5;
@@ -110,8 +109,9 @@ namespace Sos
         // Private
         private void FindNextPlayer(int tryPlayer, int score)
         {
-            if (CanIplay > 0 && score < NbTokenMax) {
-                CurPlayer = -tryPlayer; 
+            if (CanIplay > 0 && score < NbTokenMax)
+            {
+                CurPlayer = -tryPlayer;
             }
             else
             {
@@ -128,42 +128,106 @@ namespace Sos
                 ( -1,  1 ), (  0,  1 ), (  1,  1 )
             };
 
-            var color = player;
-            var listScores = new List<int>();
-            
+            var tile = (0, pos.Letter, 0);
+            player = player;
+            var score = 0;
 
-            for (var dir = 0; dir < delta.Length; dir++)
+            //     //  0    1    2    3    4  
+            //        ___, ___, ___, ___, ___, // 0
+            //        ___, xS_, xO_, xS_, ___, // 1
+            //        ___, ___, ___, ___, ___, // 2
+            //        ___, _Sx, _Ox, _Sx, ___, // 3
+            //        ___, ___, ___, ___, ___, // 4
+
+            if (pos.Letter == LetterO)
             {
-                listScores.Add(BrowseTiles(pos, delta[dir].dx, delta[dir].dy, color, apply));
+                for (var dir = 0; dir < delta.Length/2; dir++)
+                {
+                    var posTemp = pos;
+                    var isMove = posTemp.Move(delta[dir].dx, delta[dir].dy);
+                    var isMoveReverse = posTemp.Move(2*delta[delta.Length - 1 - dir].dx, 2*delta[delta.Length - 1 - dir].dy);
+
+                    if ((isMove && GetTile(posTemp).letter == LetterS)
+                    && (isMoveReverse && GetTile(posTemp).letter == LetterS)
+                    )
+                    {
+                        if(player == PlayerOne)
+                        {
+                            for (int i = 0; i < 3; i++)
+                            {
+                                if(GetTile(posTemp).letter == -pos.Letter)
+                                {
+                                    _board[posTemp.Column, posTemp.Row].isPlayerOneSos = 1;
+                                }
+                                else
+                                {
+                                    SetTile(posTemp, (IsPlayerSos, pos.Letter, Empty));
+                                }
+                                posTemp.Move(delta[dir].dx, delta[dir].dy);
+                            }
+                        }
+                        else
+                        {
+                            for (int i = 0; i < 3; i++)
+                            {
+                                if (GetTile(posTemp).letter == -pos.Letter)
+                                {
+                                    _board[posTemp.Column, posTemp.Row].isPlayerTwoSos = 1;
+                                }
+                                else
+                                {
+                                    SetTile(posTemp, (Empty, pos.Letter, IsPlayerSos));
+                                }
+                                posTemp.Move(delta[dir].dx, delta[dir].dy);
+                            }
+                        }
+                        score++;
+                        Console.WriteLine("SOS");
+                    };
+                }
             }
-            if (apply)
+
+            if( score == 0)
             {
-                SetTile(pos, pos.Letter);
+                SetTile(pos, (Empty, pos.Letter, Empty));
+
             }
-            return listScores.Max();
+
+            return score;
+
         }
 
-        private int BrowseTiles(Turn pos, int dx, int dy, int color, bool apply, int distance = 1)
+        private int BrowseTiles(Turn pos, int dx, int dy, int player, bool apply, int distance = 1)
         {
             //    0  1  2  
             // 0  O, X, _, 
             // 1  O, X, _, 
             // 2  _, _, _, 
-            bool isMove = true;
 
-            if (!pos.Move(dx, dy) || GetTile(pos) == Empty)
-            {
-                return 0;
-            }
 
-            while (GetTile(pos) == color && isMove)
-            {
-                distance++;
-                if (!pos.Move(dx, dy)) { 
-                    isMove = false; 
-                }
-                Console.WriteLine($"Distance : {distance}");
-            }
+            //if (!pos.Move(dx, dy) || GetTile(pos).letter == Empty)
+            //{
+            //    return 0;
+            //}
+
+            //if(GetTile(pos).letter == LetterO)
+            //{
+            //    if ((pos.Move(dx, dy) && pos.Letter == LetterS)
+            //        && (pos.Move(-dx, -dy) && pos.Letter == LetterS)
+            //        )
+            //    {
+            //        var result =  player == PlayerOne ? 
+            //    };
+
+            //}
+            //while (GetTile(pos).letter == color && isMove)
+            //{
+            //    distance++;
+            //    if (!pos.Move(dx, dy)) { 
+            //        isMove = false; 
+            //    }
+            //    Console.WriteLine($"Distance : {distance}");
+            //}
             return distance;
         }
 

@@ -42,6 +42,11 @@ namespace SosClient
             Console.WriteLine();
         }
 
+        private static string IsPlayerSos(int player)
+        {
+            return player != 0 ? "+" : " ";
+        }
+
         private static void DisplayGame(Game game)
         {
             Console.WriteLine();
@@ -65,8 +70,9 @@ namespace SosClient
                 for (int col = 0; col < Game.Size; col++)
                 {
                     var letter = "";
+                    var tile = game.GetTile(col, row);
 
-                    switch (game.GetTile(col, row))
+                    switch (tile.letter)
                     {
                         case Game.Empty: letter = " "; break;
                         case Game.LetterS: letter = "S"; break;
@@ -74,8 +80,7 @@ namespace SosClient
                     }
 
                     Console.Write("│");
-                    Console.Write($" {letter} ");
-
+                    Console.Write($"{IsPlayerSos(tile.isPlayerOneSos)}{letter}{IsPlayerSos(tile.isPlayerTwoSos)}");
                 }
                 Console.WriteLine("│");
 
@@ -105,7 +110,7 @@ namespace SosClient
                         position = Turn.Parse(Console.ReadLine());
                         var score = game.Play(position);
 
-                        Console.WriteLine($"Joueur {player} Choisit Colonne : {Turn.GetColumnName(position.Column)} | Ligne : {Turn.GetRowName(position.Row)}\n | Lettre :  {position.Letter}");
+                        Console.WriteLine($"Joueur {player} Choisit Colonne : {Turn.GetColumnName(position.Column)} | Ligne : {Turn.GetRowName(position.Row)} | Lettre :  {Turn.GetLetter(position.Letter)}\n");
                         Console.WriteLine($"Score : {score}");
                     }
                     catch (ArgumentException e)

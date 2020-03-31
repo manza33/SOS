@@ -17,7 +17,7 @@ namespace Sos
             }
         }
 
-        public Turn(int column, int row, char letter)
+        public Turn(int column, int row, int letter)
         {
             CheckColumnRow(column);
             CheckColumnRow(row);
@@ -40,13 +40,13 @@ namespace Sos
             {
                 throw new ArgumentException("Column must be a letter");
             }
-            if ((char)textWithPositionAndLetter[2] != 'O' && (char)textWithPositionAndLetter[2] != 'S')
+            if (textWithPositionAndLetter[2] != 'O' && textWithPositionAndLetter[2] != 'S')
             {
                 throw new ArgumentException("Letter must be O or S");
             }
             var col = textWithPositionAndLetter[0] - 'A';
             var row = textWithPositionAndLetter[1] - '1';
-            var letter = (char)textWithPositionAndLetter[2] ;
+            var letter = textWithPositionAndLetter[2] == 'S' ? 1 : -1 ;
 
             return new Turn(col, row, letter);
         }
@@ -69,7 +69,7 @@ namespace Sos
         public int Column { get; private set; }
         public int Row { get; private set; }
         public override string ToString() => $"{GetColumnName(Column)}{GetRowName(Row)}";
-        public char Letter { get; set; }
+        public int Letter { get; set; }
 
         public static string GetColumnName(int col)
         {
@@ -81,6 +81,19 @@ namespace Sos
         {
             CheckColumnRow(row);
             return $"{ row + 1 }";
+        }
+
+        public static string GetLetter(int letter)
+        {
+            if(letter == 1)
+            {
+                return "S";
+            }
+            else if (letter == -1)
+            {
+                return "O";
+            }
+            return " ";
         }
 
         public bool Move(int dx, int dy)
@@ -95,6 +108,7 @@ namespace Sos
                 Column = newCol;
                 Row = newRow;
             }
+
             return valid;
         }
 

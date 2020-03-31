@@ -6,7 +6,19 @@ namespace TestSos
 {
     public class Tests
     {
-        private const int _ = 0, O = -1, S = 1;
+
+        private readonly (int, int, int) ___ = (0, 0, 0);
+
+        private readonly (int, int, int) _S_ = (0, 1, 0);
+        private readonly (int, int, int) xS_ = (1, 1, 0);
+        private readonly (int, int, int) _Sx = (0, 1, 1);
+        private readonly (int, int, int) xSx = (1, 1, 1);
+
+        private readonly (int, int, int) _O_ = (0, -1, 0);
+        private readonly (int, int, int) xO_ = (1, -1, 0);
+        private readonly (int, int, int) _Ox = (0, -1, 1);
+        private readonly (int, int, int) xOx = (1, -1, 1);
+
 
         [Test]
         public void InitialisationBasic()
@@ -17,27 +29,32 @@ namespace TestSos
             Assert.IsFalse(test.Winner.HasValue);
             CollectionAssert.AreEqual(
                 new (int isPlayerOneSos, int nbTokenMax, int isPlayerTwoSos)[] {
-                //     A        B        C        D        E  
-                    (0,_,0), (0,_,0), (0,_,0), (0,_,0), (0,_,0), // 1
-                    (0,_,0), (0,_,0), (0,_,0), (0,_,0), (0,_,0), // 2
-                    (0,_,0), (0,_,0), (0,_,0), (0,_,0), (0,_,0), // 3
-                    (0,_,0), (0,_,0), (0,_,0), (0,_,0), (0,_,0), // 4
-                    (0,_,0), (0,_,0), (0,_,0), (0,_,0), (0,_,0), // 5
+                //   A    B    C    D    E  
+                    ___, ___, ___, ___, ___, // 1
+                    ___, ___, ___, ___, ___, // 2
+                    ___, ___, ___, ___, ___, // 3
+                    ___, ___, ___, ___, ___, // 4
+                    ___, ___, ___, ___, ___, // 5
+
                 },
                 test.Tiles
             );
         }
+
         [Test]
         public void InitGameWithSpecificBoard()
         {
             var state = new (int isPlayerOneSos, int nbTokenMax, int isPlayerTwoSos)[] {
-                //     A        B        C        D        E  
-                    (0,_,0), (0,_,0), (0,_,0), (0,_,0), (0,_,0), // 1
-                    (0,_,0), (0,S,0), (0,_,0), (0,_,0), (0,_,0), // 2
-                    (0,_,0), (0,_,0), (0,_,0), (0,_,0), (0,_,0), // 3
-                    (0,_,0), (0,S,1), (0,O,1), (0,S,1), (0,_,0), // 4
-                    (0,_,0), (0,_,0), (0,_,0), (0,_,0), (0,_,0), // 5
-                },
+
+                 //  A    B    C    D    E  
+                    ___, ___, ___, ___, ___, // 1
+                    ___, _S_, ___, ___, ___, // 2
+                    ___, ___, ___, ___, ___, // 3
+                    ___, _Sx, _Ox, _Sx, ___, // 4
+                    ___, ___, ___, ___, ___, // 5
+
+                };
+
             var test = new Game(state, Game.PlayerOne);
 
             Assert.AreEqual(Game.PlayerOne, test.CurPlayer.Value);
@@ -45,21 +62,98 @@ namespace TestSos
             CollectionAssert.AreEqual(state, test.Tiles);
         }
 
+        [Test] 
+        public void PlayAValidePosition()
+        {
+            var test = new Game(new (int isPlayerOneSos, int nbTokenMax, int isPlayerTwoSos)[] {
+                 //  A    B    C    D    E  
+                    ___, ___, ___, ___, ___, // 1
+                    ___, _S_, ___, ___, ___, // 2
+                    ___, ___, ___, ___, ___, // 3
+                    ___, _Sx, _Ox, _Sx, ___, // 4
+                    ___, ___, ___, ___, ___, // 5
+                }, Game.PlayerOne, idGameSize: 2);
+
+            test.Play(Turn.Parse("D2O"));
+            CollectionAssert.AreEqual(
+                new (int isPlayerOneSos, int nbTokenMax, int isPlayerTwoSos)[] {
+                 //  A    B    C    D    E  
+                    ___, ___, ___, ___, ___, // 1
+                    ___, _S_, ___, _O_, ___, // 2
+                    ___, ___, ___, ___, ___, // 3
+                    ___, _Sx, _Ox, _Sx, ___, // 4
+                    ___, ___, ___, ___, ___, // 5
+                },
+                test.Tiles
+            );
+        }
+
+        [Test]
+        public void PlayAValidePositionWithOAndWriteSOS()
+        {
+            var test = new Game(new (int isPlayerOneSos, int nbTokenMax, int isPlayerTwoSos)[] {
+                 //  A    B    C    D    E  
+                    ___, ___, ___, ___, ___, // 1
+                    ___, _S_, ___, _S_, ___, // 2
+                    ___, ___, ___, ___, ___, // 3
+                    ___, _Sx, _Ox, _Sx, ___, // 4
+                    ___, ___, ___, ___, ___, // 5
+                }, Game.PlayerOne, idGameSize: 2);
+
+            Assert.AreEqual(1, test.Play(Turn.Parse("C2O"))); 
+            Assert.AreEqual(-Game.PlayerOne, test.CurPlayer); // Next Player
+
+            CollectionAssert.AreEqual(
+                new (int isPlayerOneSos, int nbTokenMax, int isPlayerTwoSos)[] {
+                 //  A    B    C    D    E  
+                    ___, ___, ___, ___, ___, // 1
+                    ___, xS_, xO_, xS_, ___, // 2
+                    ___, ___, ___, ___, ___, // 3
+                    ___, _Sx, _Ox, _Sx, ___, // 4
+                    ___, ___, ___, ___, ___, // 5
+                },
+                test.Tiles
+            );
+        }
+
+        [Test]
+        public void PlayMultipleValidPositionsWithOAndWriteSOS()
+        {
+            var test = new Game(new (int isPlayerOneSos, int nbTokenMax, int isPlayerTwoSos)[] {
+                 //  A    B    C    D    E  
+                    ___, ___, ___, ___, ___, // 1
+                    ___, _S_, ___, ___, ___, // 2
+                    _S_, ___, _S_, ___, ___, // 3
+                    ___, _Sx, _Ox, _Sx, ___, // 4
+                    ___, ___, ___, ___, ___, // 5
+                }, Game.PlayerOne, idGameSize: 2);
+
+            Assert.AreEqual(2, test.Play(Turn.Parse("B3O")));
+
+            CollectionAssert.AreEqual(
+                new (int isPlayerOneSos, int nbTokenMax, int isPlayerTwoSos)[] {
+                 //  A    B    C    D    E  
+                    ___, ___, ___, ___, ___, // 1
+                    ___, xS_, ___, ___, ___, // 2
+                    xS_, xO_, xS_, ___, ___, // 3
+                    ___, xSx, _Ox, _Sx, ___, // 4
+                    ___, ___, ___, ___, ___, // 5
+                },
+                test.Tiles
+            );
+        }
 
         [Test]
         public void PlayAPositionWhereAlreadyPlayed()
         {
-            var test = new Game(new int[] {
-            //  A  B  C  D  E  F  G  H
-                _, _, _, _, _, _, _, _, // 1
-                _, S, _, _, _, _, _, _, // 2
-                _, _, _, _, _, _, _, _, // 3
-                _, _, _, _, _, O, _, _, // 4
-                _, _, _, _, _, _, _, _, // 5
-                _, _, _, _, _, _, _, _, // 6
-                _, _, _, _, _, _, _, _, // 7
-                _, _, _, _, _, _, _, _  // 8
-            }, Game.PlayerOne, idGameSize: 2);
+            var test = new Game(new (int isPlayerOneSos, int nbTokenMax, int isPlayerTwoSos)[] {
+                 //  A    B    C    D    E  
+                    ___, ___, ___, ___, ___, // 1
+                    ___, _S_, ___, ___, ___, // 2
+                    ___, ___, ___, ___, ___, // 3
+                    ___, _Sx, _Ox, _Sx, ___, // 4
+                    ___, ___, ___, ___, ___, // 5
+                }, Game.PlayerOne, idGameSize: 2);
 
             Assert.Throws<InvalidOperationException>(() => test.Play(Turn.Parse("B2S")));
         }
