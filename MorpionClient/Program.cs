@@ -72,7 +72,7 @@ namespace SosClient
                     var letter = "";
                     var tile = game.GetTile(col, row);
 
-                    switch (tile.letter)
+                    switch (tile.Letter)
                     {
                         case Game.Empty: letter = " "; break;
                         case Game.LetterS: letter = "S"; break;
@@ -80,7 +80,7 @@ namespace SosClient
                     }
 
                     Console.Write("│");
-                    Console.Write($"{IsPlayerSos(tile.isPlayerOneSos)}{letter}{IsPlayerSos(tile.isPlayerTwoSos)}");
+                    Console.Write($"{IsPlayerSos(tile.SosPlayers[0])}{letter}{IsPlayerSos(tile.SosPlayers[1])}");
                 }
                 Console.WriteLine("│");
 
@@ -96,51 +96,45 @@ namespace SosClient
             Game game = new Game();
             var player = "";
 
-            while(game.NumRound < game.NbGameRounds)
+
+            while (game.CurPlayer != null)
             {
-                while (game.CurPlayer != null)
-                {
-                    DisplayGame(game);
-                    Turn position = new Turn();
-                    try
-                    {
-                        player = game.CurPlayer == 1 ? "X" : "O";
-
-                        Console.Write($"\nJoueur {player}, Veuillez choisir une case et une lettre (S,O) : ");
-                        position = Turn.Parse(Console.ReadLine());
-                        var score = game.Play(position);
-
-                        Console.WriteLine($"Joueur {player} Choisit Colonne : {Turn.GetColumnName(position.Column)} | Ligne : {Turn.GetRowName(position.Row)} | Lettre :  {Turn.GetLetter(position.Letter)}\n");
-                        Console.WriteLine($"Score : {score}");
-                    }
-                    catch (ArgumentException e)
-                    {
-                        Console.WriteLine($"Case non valide : {e.Message}");
-
-                    }
-                    catch (SystemException e)
-                    {
-                        Console.WriteLine($"Impossible de jouer ici : {e.Message}");
-                    }
-                }
-                Console.WriteLine();
                 DisplayGame(game);
-                var winner = game.Winner.Value;
+                Turn position = new Turn();
+                try
+                {
+                    player = game.CurPlayer == 1 ? "X" : "O";
 
-                if( winner == 0)
-                {
-                    Console.WriteLine($"Aucun joueur n'a aligné assez de jetons, C'est reparti pour un tour!");
+                    Console.Write($"\nJoueur {player}, Veuillez choisir une case et une lettre (S,O) : ");
+                    position = Turn.Parse(Console.ReadLine());
+                    var score = game.Play(position);
+
+                    Console.WriteLine($"Joueur {player} Choisit Colonne : {Turn.GetColumnName(position.Column)} | Ligne : {Turn.GetRowName(position.Row)} | Lettre :  {Turn.GetLetter(position.Letter)}\n");
+                    Console.WriteLine($"Score : {score}");
                 }
-                else
+                catch (ArgumentException e)
                 {
-                    Console.WriteLine($"\nBravo joueur {winner}, tu as gagné la manche {game.NumRound}!");
+                    Console.WriteLine($"Case non valide : {e.Message}");
+
                 }
-                //game.resetGame(winner);
-            
+                catch (SystemException e)
+                {
+                    Console.WriteLine($"Impossible de jouer ici : {e.Message}");
+                }
             }
+            Console.WriteLine();
             DisplayGame(game);
-            var finalWinner = game.WinnersByRound.Sum();
-            Console.WriteLine($"\nBravo joueur {finalWinner}, tu as gagné!!!");
+            var winner = game.Winner.Value;
+
+            if (winner == 0)
+            {
+                Console.WriteLine($"Les 2 joueurs sont a égalité!!");
+            }
+            else
+            {
+                Console.WriteLine($"\nBravo joueur {winner}, tu as gagné!!");
+            }
+
         }
     }
 }
