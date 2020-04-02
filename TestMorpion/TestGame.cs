@@ -23,7 +23,7 @@ namespace TestSos
         public void InitialisationBasic()
         {
             var test = new Game();
-
+            
             Assert.AreEqual(Game.PlayerOne, test.CurPlayer);
             Assert.IsFalse(test.Winner.HasValue);
             CollectionAssert.AreEqual(
@@ -34,7 +34,6 @@ namespace TestSos
                     ___, ___, ___, ___, ___, // 3
                     ___, ___, ___, ___, ___, // 4
                     ___, ___, ___, ___, ___, // 5
-
                 },
                 test.Tiles
             );

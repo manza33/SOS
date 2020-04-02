@@ -117,6 +117,7 @@ namespace Sos
                 CurPlayer = null;
             }
         }
+
         private void TransformSosLetterS(int player, Turn posTemp, Turn pos, int dx, int dy)
         {
 
