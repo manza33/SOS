@@ -19,7 +19,6 @@ namespace TestSos
         private readonly (int, int, int) _Ox = (0, -1, 1);
         private readonly (int, int, int) xOx = (1, -1, 1);
 
-
         [Test]
         public void InitialisationBasic()
         {
@@ -69,18 +68,18 @@ namespace TestSos
                  //  A    B    C    D    E  
                     ___, ___, ___, ___, ___, // 1
                     ___, _S_, ___, ___, ___, // 2
-                    ___, ___, ___, ___, ___, // 3
+                    ___, ___, _S_, ___, ___, // 3
                     ___, _Sx, _Ox, _Sx, ___, // 4
                     ___, ___, ___, ___, ___, // 5
                 }, Game.PlayerOne, idGameSize: 2);
 
-            test.Play(Turn.Parse("D2O"));
+            test.Play(Turn.Parse("C2O"));
             CollectionAssert.AreEqual(
                 new (int isPlayerOneSos, int nbTokenMax, int isPlayerTwoSos)[] {
                  //  A    B    C    D    E  
                     ___, ___, ___, ___, ___, // 1
-                    ___, _S_, ___, _O_, ___, // 2
-                    ___, ___, ___, ___, ___, // 3
+                    ___, _S_, _O_, ___, ___, // 2
+                    ___, ___, _S_, ___, ___, // 3
                     ___, _Sx, _Ox, _Sx, ___, // 4
                     ___, ___, ___, ___, ___, // 5
                 },
@@ -124,9 +123,9 @@ namespace TestSos
                     ___, ___, ___, ___, ___, // 1
                     ___, _S_, ___, ___, ___, // 2
                     _S_, ___, _S_, ___, ___, // 3
-                    ___, _Sx, _Ox, _Sx, ___, // 4
+                    ___, xS_, _Ox, _Sx, ___, // 4
                     ___, ___, ___, ___, ___, // 5
-                }, Game.PlayerOne, idGameSize: 2);
+                }, Game.PlayerTwo, idGameSize: 2);
 
             Assert.AreEqual(2, test.Play(Turn.Parse("B3O")));
 
@@ -134,8 +133,35 @@ namespace TestSos
                 new (int isPlayerOneSos, int nbTokenMax, int isPlayerTwoSos)[] {
                  //  A    B    C    D    E  
                     ___, ___, ___, ___, ___, // 1
-                    ___, xS_, ___, ___, ___, // 2
-                    xS_, xO_, xS_, ___, ___, // 3
+                    ___, _Sx, ___, ___, ___, // 2
+                    _Sx, _Ox, _Sx, ___, ___, // 3
+                    ___, xSx, _Ox, _Sx, ___, // 4
+                    ___, ___, ___, ___, ___, // 5
+                },
+                test.Tiles
+            );
+        }
+
+        [Test]
+        public void PlayMultipleValidPositionsWithSAndWriteSOS()
+        {
+            var test = new Game(new (int isPlayerOneSos, int nbTokenMax, int isPlayerTwoSos)[] {
+                 //  A    B    C    D    E  
+                    ___, ___, ___, ___, ___, // 1
+                    ___, ___, _O_, _S_, ___, // 2
+                    ___, _O_, ___, ___, ___, // 3
+                    ___, _Sx, _Ox, _Sx, ___, // 4
+                    ___, ___, ___, ___, ___, // 5
+                }, Game.PlayerOne, idGameSize: 2);
+
+            Assert.AreEqual(2, test.Play(Turn.Parse("B2S")));
+
+            CollectionAssert.AreEqual(
+                new (int isPlayerOneSos, int nbTokenMax, int isPlayerTwoSos)[] {
+                 //  A    B    C    D    E  
+                    ___, ___, ___, ___, ___, // 1
+                    ___, xS_, xO_, xS_, ___, // 2
+                    ___, xO_, ___, ___, ___, // 3
                     ___, xSx, _Ox, _Sx, ___, // 4
                     ___, ___, ___, ___, ___, // 5
                 },

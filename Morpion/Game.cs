@@ -23,8 +23,6 @@ namespace Sos
 
         public Game(int idGameSize = 0)
         {
-
-
             //_board[1, 2] = (1, -1, 0);
             //_board[1, 1] = (1, 1, 0);
             //_board[1, 3] = (1, 1, 1);
@@ -58,7 +56,7 @@ namespace Sos
             {
                 throw new InvalidOperationException("Already played here");
             }
-            var score = LookAround(CurPlayer.Value, pos, true);
+            var score = LookAround(CurPlayer.Value, pos);
             FindNextPlayer(CurPlayer.Value, score);
             return score;
         }
@@ -109,18 +107,69 @@ namespace Sos
         // Private
         private void FindNextPlayer(int tryPlayer, int score)
         {
-            if (CanIplay > 0 && score < NbTokenMax)
+            if (CanIplay > 0)
             {
                 CurPlayer = -tryPlayer;
             }
             else
             {
-                Winner = CanIplay == 0 ? 0 : CurPlayer;
+                Winner = score > 0 ? PlayerOne : PlayerTwo;
                 CurPlayer = null;
             }
         }
+        private void TransformSosLetterS(int player, Turn posTemp, Turn pos, int dx, int dy)
+        {
 
-        private int LookAround(int player, Turn pos, bool apply)
+            if (player == PlayerOne)
+            {
+                for (int i = 0; i < 2; i++)
+                {
+                    _board[posTemp.Column, posTemp.Row].isPlayerOneSos = 1;
+                    posTemp.Move(dx, dy);
+                }
+                SetTile(posTemp, (IsPlayerSos, pos.Letter, Empty));
+            }
+            else
+            {
+                for (int i = 0; i < 2; i++)
+                {
+                    _board[posTemp.Column, posTemp.Row].isPlayerTwoSos = 1;
+                    posTemp.Move(dx, dy);
+                }
+                SetTile(posTemp, (Empty, pos.Letter, IsPlayerSos));
+            }
+        }
+        private void TransformSosLetterO(int player, Turn posTemp, Turn pos, int dx, int dy)
+        {
+            for (int i = 0; i < 3; i++)
+            {
+                if (player == PlayerOne)
+                {
+                    if (GetTile(posTemp).letter == -pos.Letter)
+                    {
+                        _board[posTemp.Column, posTemp.Row].isPlayerOneSos = IsPlayerSos;
+                    }
+                    else
+                    {
+                        SetTile(posTemp, (IsPlayerSos, pos.Letter, Empty));
+                    }
+                }
+                else if (player == PlayerTwo)
+                {
+                    if (GetTile(posTemp).letter == -pos.Letter)
+                    {
+                        _board[posTemp.Column, posTemp.Row].isPlayerTwoSos = IsPlayerSos;
+                    }
+                    else
+                    {
+                        SetTile(posTemp, (Empty, pos.Letter, IsPlayerSos));
+                    }
+                }
+                posTemp.Move(dx, dy);
+            }
+        }
+
+        private int LookAround(int player, Turn pos)
         {
             var delta = new (int dx, int dy)[]{
                 ( -1, -1 ), (  0, -1 ), (  1, -1 ),
@@ -128,8 +177,6 @@ namespace Sos
                 ( -1,  1 ), (  0,  1 ), (  1,  1 )
             };
 
-            var tile = (0, pos.Letter, 0);
-            player = player;
             var score = 0;
 
             //     //  0    1    2    3    4  
@@ -141,94 +188,42 @@ namespace Sos
 
             if (pos.Letter == LetterO)
             {
-                for (var dir = 0; dir < delta.Length/2; dir++)
+                for (var dir = 0; dir < delta.Length / 2; dir++)
                 {
                     var posTemp = pos;
                     var isMove = posTemp.Move(delta[dir].dx, delta[dir].dy);
-                    var isMoveReverse = posTemp.Move(2*delta[delta.Length - 1 - dir].dx, 2*delta[delta.Length - 1 - dir].dy);
+                    var firstLetter = GetTile(posTemp).letter;
+                    var isMoveReverse = posTemp.Move(2 * delta[delta.Length - 1 - dir].dx, 2 * delta[delta.Length - 1 - dir].dy);
 
-                    if ((isMove && GetTile(posTemp).letter == LetterS)
-                    && (isMoveReverse && GetTile(posTemp).letter == LetterS)
-                    )
+                    if ((isMove && firstLetter == LetterS)
+                    && (isMoveReverse && GetTile(posTemp).letter == LetterS))
                     {
-                        if(player == PlayerOne)
-                        {
-                            for (int i = 0; i < 3; i++)
-                            {
-                                if(GetTile(posTemp).letter == -pos.Letter)
-                                {
-                                    _board[posTemp.Column, posTemp.Row].isPlayerOneSos = 1;
-                                }
-                                else
-                                {
-                                    SetTile(posTemp, (IsPlayerSos, pos.Letter, Empty));
-                                }
-                                posTemp.Move(delta[dir].dx, delta[dir].dy);
-                            }
-                        }
-                        else
-                        {
-                            for (int i = 0; i < 3; i++)
-                            {
-                                if (GetTile(posTemp).letter == -pos.Letter)
-                                {
-                                    _board[posTemp.Column, posTemp.Row].isPlayerTwoSos = 1;
-                                }
-                                else
-                                {
-                                    SetTile(posTemp, (Empty, pos.Letter, IsPlayerSos));
-                                }
-                                posTemp.Move(delta[dir].dx, delta[dir].dy);
-                            }
-                        }
-                        score++;
+                        TransformSosLetterO(player, posTemp, pos, delta[dir].dx, delta[dir].dy);
+                        score += player;
                         Console.WriteLine("SOS");
                     };
                 }
             }
 
-            if( score == 0)
+            else if (pos.Letter == LetterS)
+            {
+                for (var dir = 0; dir < delta.Length; dir++)
+                {
+                    var posTemp = pos;
+
+                    if ((posTemp.Move(delta[dir].dx, delta[dir].dy) && GetTile(posTemp).letter == LetterO)
+                        && (posTemp.Move(delta[dir].dx, delta[dir].dy) && GetTile(posTemp).letter == LetterS))
+                    {
+                        TransformSosLetterS(player, posTemp, pos, delta[delta.Length - 1 - dir].dx, delta[delta.Length - 1 - dir].dy);
+                        score += player;
+                    }                    
+                }
+            }
+            if (score == 0)
             {
                 SetTile(pos, (Empty, pos.Letter, Empty));
-
             }
-
             return score;
-
-        }
-
-        private int BrowseTiles(Turn pos, int dx, int dy, int player, bool apply, int distance = 1)
-        {
-            //    0  1  2  
-            // 0  O, X, _, 
-            // 1  O, X, _, 
-            // 2  _, _, _, 
-
-
-            //if (!pos.Move(dx, dy) || GetTile(pos).letter == Empty)
-            //{
-            //    return 0;
-            //}
-
-            //if(GetTile(pos).letter == LetterO)
-            //{
-            //    if ((pos.Move(dx, dy) && pos.Letter == LetterS)
-            //        && (pos.Move(-dx, -dy) && pos.Letter == LetterS)
-            //        )
-            //    {
-            //        var result =  player == PlayerOne ? 
-            //    };
-
-            //}
-            //while (GetTile(pos).letter == color && isMove)
-            //{
-            //    distance++;
-            //    if (!pos.Move(dx, dy)) { 
-            //        isMove = false; 
-            //    }
-            //    Console.WriteLine($"Distance : {distance}");
-            //}
-            return distance;
         }
 
     }
