@@ -40,15 +40,46 @@ namespace MorpionAPI.Controllers
         [HttpPatch("{key}/{positionAndLetter}")]
         public ActionResult<Game> Patch(string key, string positionAndLetter)
         {
-
             var game = _gameRepo.FindByKey(key);
             if (game == null) return NotFound("Jeu pas trouvé");
 
-            var position = Turn.Parse(positionAndLetter);
-            game.Play(position);
+            try
+            {
+                var position = Turn.Parse(positionAndLetter);
+                game.Play(position);
+                return game;
+            }
+            catch (InvalidOperationException e)
+            {
+                return BadRequest(e.Message);
+            }
+            catch (ArgumentException e)
+            {
+                return BadRequest(e.Message);
+            }
 
-            return game;
+        }
 
+        [HttpPatch("{key}")]
+        public ActionResult<Game> PatchFromBody(string key, [FromBody] string positionAndLetter)
+        {
+            var game = _gameRepo.FindByKey(key);
+            if (game == null) return NotFound("Jeu pas trouvé");
+
+            try
+            {
+                var position = Turn.Parse(positionAndLetter);
+                game.Play(position); 
+                return game;
+            }
+            catch (InvalidOperationException e)
+            {
+                return BadRequest(e.Message);
+            }
+            catch (ArgumentException e)
+            {
+                return BadRequest(e.Message);
+            }
         }
 
         //// PUT api/values/5

@@ -54,5 +54,24 @@ namespace Sos
                 throw new ArgumentException($"Bad Player/Letter ({letterPlayer})");
             }
         }
+
+        public override string ToString()
+        {
+            return $"{SosPlayers[0]}{Letter}{SosPlayers[1]}";
+        }
+
+        public override bool Equals(object obj)
+        {
+            return 
+                obj is Tile 
+                && ((Tile)obj).Letter == Letter 
+                && ((Tile)obj).SosPlayers[0] == SosPlayers[0]
+                && ((Tile)obj).SosPlayers[1] == SosPlayers[1];
+        }
+
+        public override int GetHashCode()
+        {
+            return ToString().GetHashCode();
+        }
     }
 }
