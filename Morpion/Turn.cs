@@ -66,8 +66,8 @@ namespace Sos
             return true;
         }
 
-        public int Column { get; private set; }
-        public int Row { get; private set; }
+        public int Column { get; set; }
+        public int Row { get; set; }
         public override string ToString() => $"{GetColumnName(Column)}{GetRowName(Row)}";
         public int Letter { get; set; }
 

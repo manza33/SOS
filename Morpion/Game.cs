@@ -6,7 +6,7 @@ namespace Sos
 {
     public class Game
     {
-        public const int Size = 5;
+        public const int Size = 8;
         public const int Empty = 0;
         public const int LetterS = 1;
         public const int LetterO = -1;
@@ -50,6 +50,7 @@ namespace Sos
 
         public int Play(Turn pos)
         {
+            //Console.WriteLine($"{pos.Column},{pos.Column} | posLetter : {pos.Letter} | boardLetter : {_board[pos.Column, pos.Row].Letter} ");
             if (_board[pos.Column, pos.Row].Letter != Empty)
             {
                 throw new InvalidOperationException("Already played here");
@@ -88,6 +89,8 @@ namespace Sos
         public int? CurPlayer { get; private set; } = PlayerOne;
         public int? Winner { get; private set; } = null;
         public int CanIplay => Tiles.Count(c => c.Letter == 0);
+        public int ScorePlayerOne { get; set; } = 0;
+        public int ScorePlayerTwo { get; set; } = 0;
 
         // Private
         private void FindNextPlayer(int tryPlayer, int score)
@@ -129,6 +132,7 @@ namespace Sos
                     TransformSosLetter(player, posTemp, delta[dir].dx, delta[dir].dy);
 
                     score += player;
+                    SetScorePlayer(player);
                     Console.WriteLine("SOS");
                 };
             }
@@ -147,6 +151,7 @@ namespace Sos
                 {
                     TransformSosLetter(player, posTemp, delta[delta.Length - 1 - dir].dx, delta[delta.Length - 1 - dir].dy);
                     score += player;
+                    SetScorePlayer(player);
                 }
             }
 
@@ -172,6 +177,18 @@ namespace Sos
             SetTile(pos, transformTile);
 
             return score;
+        }
+
+        private void SetScorePlayer(int player)
+        {
+            if(player == PlayerOne)
+            {
+                ScorePlayerOne++;
+            }
+            else
+            {
+                ScorePlayerTwo++;
+            }
         }
 
     }

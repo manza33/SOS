@@ -61,15 +61,15 @@ namespace MorpionAPI.Controllers
         }
 
         [HttpPatch("{key}")]
-        public ActionResult<Game> PatchFromBody(string key, [FromBody] string positionAndLetter)
+        public ActionResult<Game> PatchFromBody(string key, [FromBody] Turn positionAndLetter)
         {
             var game = _gameRepo.FindByKey(key);
             if (game == null) return NotFound("Jeu pas trouvé");
 
             try
             {
-                var position = Turn.Parse(positionAndLetter);
-                game.Play(position); 
+                //var position = Turn.Parse(positionAndLetter);
+                game.Play(positionAndLetter); 
                 return game;
             }
             catch (InvalidOperationException e)

@@ -6,10 +6,9 @@ using System.Threading.Tasks;
 
 namespace SosForms.Models
 {
-    class GameOnline
+    class OnlinePosition
     {
-        public int? CurPlayer { get; set; }
-        public int? Winner { get; set; }
-        public List<Tile> Tiles { get; set; }
+        public int Column { get; set; }
+        public int row { get; set; }
     }
 }

@@ -39,34 +39,45 @@ namespace SosForms
                     var response = await http.GetStringAsync(WebApiLink);
                     var data = JsonConvert.DeserializeObject<IDictionary<string, GameOnline>>(response);
 
+                    lbGames.Items.Clear();
+                    foreach (var title in data.Keys)
+                    {
+                        lbGames.Items.Add(title);
+                    }
+                    if(lbGames.Items.Count > 0)
+                    {
+                        lbGames.SelectedIndex = 0;
+                    }
                 }
             }
             catch(HttpRequestException ex)
             {
                 MessageBox.Show(this, ex.Message, "Connexion a l'API", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
-
+            catch(JsonException ex)
+            {
+                MessageBox.Show(this, ex.Message, "Lecture des données de l'API", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            };
             UpdateOkButton();
         }
 
-        public string GameName => radioButtonJoinGame.Checked
-            ? lbGames.SelectedItems?.ToString()
-            : textBoxNewGame.Text;
-
-        private void UpdateOkButton() => btnOk.Enabled = GameName != null && GameName != String.Empty;
-
-
-        private void lbGames_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            UpdateOkButton();
-        }
 
         private void radioButtonJoinGame_CheckedChanged(object sender, EventArgs e)
         {
             textBoxNewGame.Enabled = radioButtonNewGame.Checked;
             lbGames.Enabled = radioButtonJoinGame.Checked;
             UpdateOkButton();
-
         }
+
+        private void lbGames_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            UpdateOkButton();
+        }
+
+        public string GameName => radioButtonJoinGame.Checked
+            ? lbGames.SelectedItems?[0].ToString()
+            : textBoxNewGame.Text;
+        private void UpdateOkButton() => btnOk.Enabled = GameName != null && GameName != String.Empty;
+
     }
 }
